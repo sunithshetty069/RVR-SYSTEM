@@ -289,7 +289,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--paper);}
     <div class="topbar-brand">RVR <span>HMS</span></div>
     <div class="topbar-role" id="topbar-role">Admin</div>
     <div class="topbar-right">
-      <div class="topbar-user" id="topbar-user">admin@rvrhealthcare.in</div>
+      <div class="topbar-user" id="topbar-user"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="fa9b9e979394ba888c88929f9b968e92999b889fd49394">[email&#160;protected]</a></div>
       <button class="topbar-logout" onclick="doLogout()">Sign Out</button>
     </div>
   </div>
@@ -303,7 +303,7 @@ html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--paper);}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 /* ══ STATE ═══════════════════════════════════════════════════════ */
 let currentRole = 'admin';
 let activePage  = '';
@@ -679,13 +679,4 @@ function loadPage(pageId) {
         stock:'📦',reorder:'🔄',suppliers:'🏭',insurance:'🛡️',revenue:'📈',
         expenses:'📉',reports:'📋'
       };
-      content = PAGES._placeholder(titles[pageId]||pageId, icons[pageId]||'📄');
-    }
-  }
-
-  document.getElementById('main-content').innerHTML = `<div class="page active">${content}</div>`;
-  document.getElementById('main-content').scrollTop = 0;
-}
-</script>
-</body>
-</html>
+      content = PAGES._placeholder(titles[pag
