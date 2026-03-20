@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RVR HMS — Hospital Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@200;300;400;600&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --green:#1a6644;--mint:#3ecb96;--dark:#0a0a0a;--paper:#f7f4ef;
+  --white:#ffffff;--gray:#888;--border:rgba(0,0,0,.08);
+  --red:#e05252;--blue:#3b82f6;--amber:#f59e0b;--purple:#8b5cf6;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--paper);}
+@keyframes fu{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ══ LOGIN PAGE ══════════════════════════════════════════════════ */
+#login-page{
+  min-height:100vh;display:flex;
+  background:var(--green);
+  position:relative;overflow:hidden;
+}
+#login-page::before{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 59px,rgba(255,255,255,.04) 59px,rgba(255,255,255,.04) 60px),
+             repeating-linear-gradient(90deg,transparent,transparent 59px,rgba(255,255,255,.03) 59px,rgba(255,255,255,.03) 60px);
+}
+.login-left{
+  flex:1;display:flex;flex-direction:column;
+  justify-content:center;padding:4rem;
+  position:relative;z-index:1;
+}
+.login-brand{margin-bottom:3rem;}
+.login-brand-icon{
+  width:52px;height:52px;background:rgba(255,255,255,.12);
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  margin-bottom:1.2rem;
+}
+.login-brand-icon svg{width:28px;height:28px;}
+.login-brand h1{font-family:'Unbounded',sans-serif;font-weight:300;font-size:1.6rem;color:#fff;letter-spacing:-.02em;}
+.login-brand p{font-size:.75rem;color:rgba(255,255,255,.45);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;}
+.login-tagline{
+  font-family:'Unbounded',sans-serif;font-weight:200;
+  font-size:clamp(1.8rem,3vw,3rem);
+  color:#fff;line-height:1.1;letter-spacing:-.025em;
+  margin-bottom:1rem;
+}
+.login-tagline span{color:var(--mint);}
+.login-sub{font-size:.85rem;color:rgba(255,255,255,.45);line-height:1.6;}
+
+.login-right{
+  width:480px;background:var(--paper);
+  display:flex;flex-direction:column;justify-content:center;
+  padding:3rem;position:relative;z-index:1;
+}
+.login-right h2{font-family:'Unbounded',sans-serif;font-weight:400;font-size:1.2rem;color:var(--dark);margin-bottom:.4rem;}
+.login-right p{font-size:.8rem;color:var(--gray);margin-bottom:2rem;}
+
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;margin-bottom:1.5rem;}
+.role-btn{
+  padding:.6rem .8rem;border:1.5px solid var(--border);background:#fff;
+  border-radius:6px;cursor:pointer;text-align:left;
+  transition:all .2s;
+}
+.role-btn:hover{border-color:var(--green);background:#f0f8f4;}
+.role-btn.active{border-color:var(--green);background:var(--green);color:#fff;}
+.role-btn .rb-icon{font-size:1.1rem;margin-bottom:.2rem;display:block;}
+.role-btn .rb-name{font-size:.72rem;font-weight:500;display:block;}
+.role-btn .rb-desc{font-size:.62rem;color:var(--gray);display:block;margin-top:.1rem;}
+.role-btn.active .rb-desc{color:rgba(255,255,255,.6);}
+
+.form-group{margin-bottom:1rem;}
+.form-group label{display:block;font-size:.72rem;font-weight:500;color:var(--dark);margin-bottom:.4rem;letter-spacing:.04em;}
+.form-group input{
+  width:100%;padding:.75rem 1rem;
+  border:1.5px solid var(--border);background:#fff;
+  font-family:'DM Sans',sans-serif;font-size:.88rem;color:var(--dark);
+  outline:none;transition:border-color .2s;border-radius:4px;
+}
+.form-group input:focus{border-color:var(--green);}
+
+.login-btn{
+  width:100%;padding:.85rem;background:var(--green);
+  border:none;color:#fff;font-family:'DM Sans',sans-serif;
+  font-size:.8rem;font-weight:500;letter-spacing:.12em;text-transform:uppercase;
+  cursor:pointer;transition:background .2s;border-radius:4px;margin-top:.5rem;
+}
+.login-btn:hover{background:#145236;}
+.login-hint{margin-top:1rem;padding:.75rem;background:rgba(26,102,68,.06);border-left:3px solid var(--mint);font-size:.72rem;color:var(--gray);line-height:1.6;border-radius:0 4px 4px 0;}
+.login-hint b{color:var(--green);}
+
+/* ══ APP SHELL ═══════════════════════════════════════════════════ */
+#app{display:none;min-height:100vh;flex-direction:column;}
+#app.visible{display:flex;}
+
+/* TOPBAR */
+.topbar{
+  height:56px;background:var(--green);
+  display:flex;align-items:center;padding:0 1.5rem;gap:1rem;
+  position:sticky;top:0;z-index:100;flex-shrink:0;
+}
+.topbar-brand{font-family:'Unbounded',sans-serif;font-weight:300;font-size:.85rem;color:#fff;letter-spacing:-.01em;}
+.topbar-brand span{color:var(--mint);}
+.topbar-role{
+  margin-left:.5rem;padding:.2rem .6rem;
+  background:rgba(255,255,255,.12);border-radius:20px;
+  font-size:.6rem;color:rgba(255,255,255,.8);letter-spacing:.08em;text-transform:uppercase;
+}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:1rem;}
+.topbar-user{font-size:.75rem;color:rgba(255,255,255,.65);}
+.topbar-logout{
+  padding:.3rem .8rem;border:1px solid rgba(255,255,255,.25);
+  background:transparent;color:rgba(255,255,255,.7);
+  font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;
+  cursor:pointer;border-radius:3px;transition:all .2s;font-family:'DM Sans',sans-serif;
+}
+.topbar-logout:hover{background:rgba(255,255,255,.1);color:#fff;}
+
+/* LAYOUT */
+.app-body{flex:1;display:flex;overflow:hidden;}
+.sidebar{
+  width:220px;background:#fff;border-right:1px solid var(--border);
+  padding:1.2rem 0;flex-shrink:0;overflow-y:auto;
+}
+.sidebar-section{margin-bottom:1.5rem;}
+.sidebar-label{font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gray);padding:0 1.2rem;margin-bottom:.4rem;}
+.nav-item{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.6rem 1.2rem;cursor:pointer;
+  font-size:.8rem;color:#444;transition:all .18s;
+  border-left:2px solid transparent;
+}
+.nav-item:hover{background:#f5f5f5;color:var(--dark);}
+.nav-item.active{background:#f0f8f4;color:var(--green);border-left-color:var(--green);font-weight:500;}
+.nav-item .ni{font-size:1rem;width:20px;text-align:center;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:.55rem;padding:.1rem .35rem;border-radius:10px;}
+
+/* MAIN CONTENT */
+.main{flex:1;overflow-y:auto;padding:1.8rem;background:var(--paper);}
+.page{display:none;animation:fu .4s ease;}
+.page.active{display:block;}
+
+/* ══ COMMON COMPONENTS ═══════════════════════════════════════════ */
+.page-header{margin-bottom:1.5rem;}
+.page-header h2{font-family:'Unbounded',sans-serif;font-weight:400;font-size:1.1rem;color:var(--dark);}
+.page-header p{font-size:.78rem;color:var(--gray);margin-top:.2rem;}
+
+/* stat cards */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.5rem;}
+.stat{background:#fff;padding:1.2rem;border-radius:8px;border:1px solid var(--border);}
+.stat-val{font-family:'Unbounded',sans-serif;font-weight:300;font-size:1.8rem;color:var(--dark);line-height:1;}
+.stat-lbl{font-size:.68rem;color:var(--gray);margin-top:.3rem;letter-spacing:.04em;}
+.stat-change{font-size:.65rem;margin-top:.4rem;}
+.stat-change.up{color:#16a34a;} .stat-change.down{color:var(--red);}
+.stat .stat-icon{font-size:1.4rem;margin-bottom:.5rem;}
+
+/* tables */
+.table-wrap{background:#fff;border-radius:8px;border:1px solid var(--border);overflow:hidden;margin-bottom:1rem;}
+.table-head{padding:1rem 1.2rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-head h3{font-size:.82rem;font-weight:600;color:var(--dark);}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{font-size:.65rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gray);padding:.7rem 1rem;text-align:left;border-bottom:1px solid var(--border);background:#fafafa;}
+.tbl td{font-size:.78rem;color:#333;padding:.75rem 1rem;border-bottom:1px solid #f0f0f0;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#fafafa;}
+.badge{display:inline-block;padding:.18rem .55rem;border-radius:20px;font-size:.6rem;font-weight:500;letter-spacing:.04em;}
+.badge-green{background:#dcfce7;color:#15803d;}
+.badge-amber{background:#fef3c7;color:#b45309;}
+.badge-red{background:#fee2e2;color:#b91c1c;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-gray{background:#f3f4f6;color:#6b7280;}
+
+/* action btn */
+.btn{padding:.5rem 1rem;border:none;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;cursor:pointer;transition:all .18s;letter-spacing:.04em;}
+.btn-green{background:var(--green);color:#fff;} .btn-green:hover{background:#145236;}
+.btn-outline{background:#fff;color:var(--green);border:1px solid var(--green);} .btn-outline:hover{background:#f0f8f4;}
+.btn-sm{padding:.3rem .7rem;font-size:.65rem;}
+
+/* quick actions */
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.8rem;margin-bottom:1.5rem;}
+.qa{background:#fff;border:1px solid var(--border);border-radius:8px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;}
+.qa:hover{border-color:var(--green);transform:translateY(-2px);box-shadow:0 4px 12px rgba(26,102,68,.1);}
+.qa-icon{font-size:1.5rem;margin-bottom:.4rem;}
+.qa-name{font-size:.72rem;font-weight:500;color:var(--dark);}
+
+/* form card */
+.form-card{background:#fff;border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1rem;}
+.form-card h3{font-size:.85rem;font-weight:600;color:var(--dark);margin-bottom:1rem;padding-bottom:.6rem;border-bottom:1px solid var(--border);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;}
+.fg{margin-bottom:.9rem;}
+.fg label{display:block;font-size:.7rem;font-weight:500;color:#555;margin-bottom:.3rem;}
+.fg input,.fg select,.fg textarea{width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);background:#fff;font-family:'DM Sans',sans-serif;font-size:.82rem;outline:none;transition:border-color .2s;border-radius:4px;}
+.fg input:focus,.fg select:focus{border-color:var(--green);}
+.fg textarea{resize:vertical;min-height:80px;}
+
+/* timeline */
+.timeline{display:flex;flex-direction:column;gap:.8rem;}
+.tl-item{display:flex;gap:.8rem;padding:.8rem;background:#fff;border:1px solid var(--border);border-radius:6px;}
+.tl-dot{width:8px;height:8px;border-radius:50%;background:var(--mint);margin-top:.3rem;flex-shrink:0;}
+.tl-time{font-size:.65rem;color:var(--gray);white-space:nowrap;}
+.tl-text{font-size:.78rem;color:var(--dark);flex:1;}
+
+/* responsive */
+@media(max-width:768px){
+  .login-left{display:none;}
+  .login-right{width:100%;padding:2rem;}
+  .sidebar{width:180px;}
+  .stats{grid-template-columns:1fr 1fr;}
+  .form-row{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN PAGE ══════════════════════════════════════════════════ -->
+<div id="login-page">
+  <div class="login-left">
+    <div class="login-brand">
+      <div class="login-brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <h1>RVR <span style="color:var(--mint)">HMS</span></h1>
+      <p>Hospital Management System</p>
+    </div>
+    <div class="login-tagline">One system.<br>Every role.<br><span>Every department.</span></div>
+    <div class="login-sub">Role-based access. Every staff member sees exactly what they need — nothing more, nothing less.</div>
+  </div>
+
+  <div class="login-right">
+    <h2>Sign In</h2>
+    <p>Select your role and enter your credentials</p>
+
+    <div class="role-grid">
+      <button class="role-btn active" onclick="selectRole('admin')" id="role-admin">
+        <span class="rb-icon">👑</span>
+        <span class="rb-name">Admin</span>
+        <span class="rb-desc">Full access</span>
+      </button>
+      <button class="role-btn" onclick="selectRole('doctor')" id="role-doctor">
+        <span class="rb-icon">🩺</span>
+        <span class="rb-name">Doctor</span>
+        <span class="rb-desc">My patients</span>
+      </button>
+      <button class="role-btn" onclick="selectRole('reception')" id="role-reception">
+        <span class="rb-icon">🏥</span>
+        <span class="rb-name">Reception</span>
+        <span class="rb-desc">Appointments</span>
+      </button>
+      <button class="role-btn" onclick="selectRole('hr')" id="role-hr">
+        <span class="rb-icon">👥</span>
+        <span class="rb-name">HR</span>
+        <span class="rb-desc">Staff & payroll</span>
+      </button>
+      <button class="role-btn" onclick="selectRole('pharmacy')" id="role-pharmacy">
+        <span class="rb-icon">💊</span>
+        <span class="rb-name">Pharmacy</span>
+        <span class="rb-desc">Medicines</span>
+      </button>
+      <button class="role-btn" onclick="selectRole('finance')" id="role-finance">
+        <span class="rb-icon">💰</span>
+        <span class="rb-name">Finance</span>
+        <span class="rb-desc">Billing & reports</span>
+      </button>
+    </div>
+
+    <div class="form-group">
+      <label>EMAIL / EMPLOYEE ID</label>
+      <input type="text" id="login-user" value="admin@rvrhealthcare.in">
+    </div>
+    <div class="form-group">
+      <label>PASSWORD</label>
+      <input type="password" id="login-pass" value="••••••••">
+    </div>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+
+    <div class="login-hint">
+      <b>Demo credentials:</b><br>
+      Select any role above and click Sign In.<br>
+      Each role shows a completely different dashboard.
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP SHELL ═══════════════════════════════════════════════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">RVR <span>HMS</span></div>
+    <div class="topbar-role" id="topbar-role">Admin</div>
+    <div class="topbar-right">
+      <div class="topbar-user" id="topbar-user">admin@rvrhealthcare.in</div>
+      <button class="topbar-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="app-body">
+    <!-- SIDEBAR — rendered by JS per role -->
+    <div class="sidebar" id="sidebar"></div>
+
+    <!-- MAIN CONTENT — rendered by JS per role -->
+    <div class="main" id="main-content"></div>
+  </div>
+</div>
+
+<script>
+/* ══ STATE ═══════════════════════════════════════════════════════ */
+let currentRole = 'admin';
+let activePage  = '';
+
+/* ══ ROLES CONFIG ════════════════════════════════════════════════ */
+const ROLES = {
+  admin: {
+    label: 'Administrator',
+    user:  'vijay@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'Overview',  items:[{id:'dashboard',icon:'📊',name:'Dashboard'},{id:'analytics',icon:'📈',name:'Analytics'}]},
+      { section:'Hospital',  items:[{id:'patients',icon:'🧑‍⚕️',name:'All Patients',badge:3},{id:'appointments',icon:'📅',name:'Appointments'},{id:'doctors',icon:'🩺',name:'Doctors'},{id:'departments',icon:'🏥',name:'Departments'}]},
+      { section:'Operations',items:[{id:'billing',icon:'🧾',name:'Billing'},{id:'pharmacy',icon:'💊',name:'Pharmacy'},{id:'hr',icon:'👥',name:'HR & Staff'}]},
+      { section:'System',    items:[{id:'settings',icon:'⚙️',name:'Settings'},{id:'audit',icon:'🔍',name:'Audit Log'}]},
+    ]
+  },
+  doctor: {
+    label: 'Doctor',
+    user:  'dr.raghavendra@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'My Work',   items:[{id:'dashboard',icon:'📊',name:'My Dashboard'},{id:'mypatients',icon:'🧑‍⚕️',name:'My Patients',badge:2},{id:'schedule',icon:'📅',name:'My Schedule'}]},
+      { section:'Clinical',  items:[{id:'notes',icon:'📝',name:'Clinical Notes'},{id:'prescriptions',icon:'💊',name:'Prescriptions'},{id:'laborders',icon:'🔬',name:'Lab Orders'}]},
+      { section:'Profile',   items:[{id:'earnings',icon:'💰',name:'My Earnings'},{id:'profile',icon:'👤',name:'My Profile'}]},
+    ]
+  },
+  reception: {
+    label: 'Reception',
+    user:  'reception@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'Main',      items:[{id:'dashboard',icon:'📊',name:'Dashboard'},{id:'newpatient',icon:'➕',name:'New Patient'},{id:'appointments',icon:'📅',name:'Appointments',badge:5}]},
+      { section:'Patients',  items:[{id:'search',icon:'🔍',name:'Search Patient'},{id:'walkin',icon:'🚶',name:'Walk-ins'}]},
+      { section:'Info',      items:[{id:'doctors',icon:'🩺',name:'Doctor Schedule'},{id:'rooms',icon:'🏨',name:'Room Status'}]},
+    ]
+  },
+  hr: {
+    label: 'HR Manager',
+    user:  'hr@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'HR',        items:[{id:'dashboard',icon:'📊',name:'HR Dashboard'},{id:'staff',icon:'👥',name:'All Staff'},{id:'attendance',icon:'🕐',name:'Attendance'}]},
+      { section:'Payroll',   items:[{id:'payroll',icon:'💰',name:'Payroll'},{id:'payouts',icon:'💳',name:'Doctor Payouts'}]},
+      { section:'Recruit',   items:[{id:'leaves',icon:'🌴',name:'Leave Requests',badge:2},{id:'onboarding',icon:'📋',name:'Onboarding'}]},
+    ]
+  },
+  pharmacy: {
+    label: 'Pharmacist',
+    user:  'pharmacy@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'Pharmacy',  items:[{id:'dashboard',icon:'📊',name:'Dashboard'},{id:'queue',icon:'⏳',name:'Prescription Queue',badge:7},{id:'dispense',icon:'💊',name:'Dispense'}]},
+      { section:'Inventory', items:[{id:'stock',icon:'📦',name:'Stock'},{id:'reorder',icon:'🔄',name:'Reorder Alerts',badge:3},{id:'suppliers',icon:'🏭',name:'Suppliers'}]},
+    ]
+  },
+  finance: {
+    label: 'Finance',
+    user:  'finance@rvrhealthcare.in',
+    color: '#1a6644',
+    nav: [
+      { section:'Finance',   items:[{id:'dashboard',icon:'📊',name:'Dashboard'},{id:'billing',icon:'🧾',name:'Billing'},{id:'insurance',icon:'🛡️',name:'Insurance'}]},
+      { section:'Reports',   items:[{id:'revenue',icon:'📈',name:'Revenue'},{id:'expenses',icon:'📉',name:'Expenses'},{id:'reports',icon:'📋',name:'Reports'}]},
+    ]
+  }
+};
+
+/* ══ PAGE CONTENT ════════════════════════════════════════════════ */
+const PAGES = {
+  /* ADMIN DASHBOARD */
+  admin_dashboard: `
+    <div class="page-header"><h2>Good Morning, Vijay Sir 👋</h2><p>Here's what's happening at RVR today — April 27, 2026</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-icon">🧑‍⚕️</div><div class="stat-val">142</div><div class="stat-lbl">Patients Today</div><div class="stat-change up">↑ 12 from yesterday</div></div>
+      <div class="stat"><div class="stat-icon">📅</div><div class="stat-val">38</div><div class="stat-lbl">Appointments</div><div class="stat-change up">↑ 5 pending</div></div>
+      <div class="stat"><div class="stat-icon">🏥</div><div class="stat-val">24/40</div><div class="stat-lbl">Beds Occupied</div><div class="stat-change">60% occupancy</div></div>
+      <div class="stat"><div class="stat-icon">💰</div><div class="stat-val">₹2.4L</div><div class="stat-lbl">Revenue Today</div><div class="stat-change up">↑ 18% vs last week</div></div>
+      <div class="stat"><div class="stat-icon">🩺</div><div class="stat-val">8</div><div class="stat-lbl">Doctors On Duty</div><div class="stat-change">All departments</div></div>
+      <div class="stat"><div class="stat-icon">🚨</div><div class="stat-val">3</div><div class="stat-lbl">Emergency Cases</div><div class="stat-change down">2 critical</div></div>
+    </div>
+    <div class="quick">
+      <div class="qa" onclick="loadPage('patients')"><div class="qa-icon">🧑‍⚕️</div><div class="qa-name">View Patients</div></div>
+      <div class="qa" onclick="loadPage('appointments')"><div class="qa-icon">📅</div><div class="qa-name">Appointments</div></div>
+      <div class="qa" onclick="loadPage('billing')"><div class="qa-icon">🧾</div><div class="qa-name">Billing</div></div>
+      <div class="qa" onclick="loadPage('doctors')"><div class="qa-icon">🩺</div><div class="qa-name">Doctors</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Recent Patients</h3><button class="btn btn-outline btn-sm" onclick="loadPage('patients')">View All</button></div>
+      <table class="tbl">
+        <thead><tr><th>Patient</th><th>Doctor</th><th>Department</th><th>Status</th><th>Time</th></tr></thead>
+        <tbody>
+          <tr><td><b>Ramesh Shetty</b><br><span style="color:var(--gray);font-size:.65rem">MRN-001042</span></td><td>Dr. Raghavendra</td><td>Neurology</td><td><span class="badge badge-green">In Consultation</span></td><td>10:30 AM</td></tr>
+          <tr><td><b>Lakshmi Pai</b><br><span style="color:var(--gray);font-size:.65rem">MRN-001041</span></td><td>Dr. Manish Rai</td><td>Cardiology</td><td><span class="badge badge-amber">Waiting</span></td><td>10:15 AM</td></tr>
+          <tr><td><b>Ahmed Khan</b><br><span style="color:var(--gray);font-size:.65rem">MRN-001040</span></td><td>Dr. Nishitha</td><td>Internal Medicine</td><td><span class="badge badge-blue">Admitted</span></td><td>09:45 AM</td></tr>
+          <tr><td><b>Sunitha D'Souza</b><br><span style="color:var(--gray);font-size:.65rem">MRN-001039</span></td><td>Dr. Rakshith</td><td>Surgery</td><td><span class="badge badge-red">Emergency</span></td><td>09:20 AM</td></tr>
+          <tr><td><b>Mohan Hegde</b><br><span style="color:var(--gray);font-size:.65rem">MRN-001038</span></td><td>Dr. Shruthi</td><td>Neurology</td><td><span class="badge badge-gray">Discharged</span></td><td>08:50 AM</td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* DOCTOR DASHBOARD */
+  doctor_dashboard: `
+    <div class="page-header"><h2>Good Morning, Dr. Raghavendra 🩺</h2><p>Neurology — Monday, April 27, 2026</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">12</div><div class="stat-lbl">Today's Patients</div><div class="stat-change">6 seen · 6 pending</div></div>
+      <div class="stat"><div class="stat-val">4</div><div class="stat-lbl">Admitted</div><div class="stat-change up">Ward B · Room 14,15,18,22</div></div>
+      <div class="stat"><div class="stat-val">₹42,000</div><div class="stat-lbl">Today's Earnings</div><div class="stat-change up">↑ 8% vs yesterday</div></div>
+      <div class="stat"><div class="stat-val">2</div><div class="stat-lbl">Pending Reports</div><div class="stat-change down">Review required</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Today's Schedule</h3><span class="badge badge-green">12 patients</span></div>
+      <table class="tbl">
+        <thead><tr><th>Time</th><th>Patient</th><th>Complaint</th><th>Type</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>09:00 AM</td><td><b>Ramesh Shetty</b></td><td>Stroke follow-up</td><td><span class="badge badge-blue">OPD</span></td><td><button class="btn btn-green btn-sm" onclick="loadPage('notes')">Open Notes</button></td></tr>
+          <tr><td>09:30 AM</td><td><b>Priya Nair</b></td><td>Epilepsy review</td><td><span class="badge badge-blue">OPD</span></td><td><button class="btn btn-green btn-sm" onclick="loadPage('notes')">Open Notes</button></td></tr>
+          <tr><td>10:00 AM</td><td><b>Suresh Kumar</b></td><td>Migraine</td><td><span class="badge badge-blue">OPD</span></td><td><button class="btn btn-green btn-sm" onclick="loadPage('notes')">Open Notes</button></td></tr>
+          <tr><td>10:30 AM ✅</td><td><b>Lakshmi Bai</b></td><td>Parkinson's assessment</td><td><span class="badge badge-amber">Video</span></td><td><button class="btn btn-outline btn-sm">View Notes</button></td></tr>
+          <tr><td>11:00 AM</td><td><b>David Pinto</b></td><td>New case — numbness</td><td><span class="badge badge-red">Emergency</span></td><td><button class="btn btn-green btn-sm" onclick="loadPage('notes')">Open Notes</button></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* RECEPTION DASHBOARD */
+  reception_dashboard: `
+    <div class="page-header"><h2>Reception Dashboard 🏥</h2><p>Monday, April 27, 2026 — Good Morning!</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">5</div><div class="stat-lbl">Waiting Now</div><div class="stat-change down">Avg wait: 18 mins</div></div>
+      <div class="stat"><div class="stat-val">38</div><div class="stat-lbl">Appointments Today</div><div class="stat-change">22 confirmed · 16 pending</div></div>
+      <div class="stat"><div class="stat-val">7</div><div class="stat-lbl">Walk-ins Today</div><div class="stat-change up">↑ 2 from yesterday</div></div>
+      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Admitted Today</div><div class="stat-change">Ward B: 2, Ward C: 1</div></div>
+    </div>
+    <div class="quick">
+      <div class="qa" onclick="loadPage('newpatient')"><div class="qa-icon">➕</div><div class="qa-name">New Patient</div></div>
+      <div class="qa" onclick="loadPage('appointments')"><div class="qa-icon">📅</div><div class="qa-name">Book Appointment</div></div>
+      <div class="qa" onclick="loadPage('search')"><div class="qa-icon">🔍</div><div class="qa-name">Search Patient</div></div>
+      <div class="qa" onclick="loadPage('walkin')"><div class="qa-icon">🚶</div><div class="qa-name">Walk-in Entry</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Waiting Queue</h3><button class="btn btn-green btn-sm" onclick="loadPage('newpatient')">+ New Patient</button></div>
+      <table class="tbl">
+        <thead><tr><th>#</th><th>Patient</th><th>Doctor</th><th>Token</th><th>Wait</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td><b>Ramesh Shetty</b></td><td>Dr. Raghavendra</td><td><span class="badge badge-green">T-001</span></td><td>5 mins</td><td><button class="btn btn-green btn-sm">Call In</button></td></tr>
+          <tr><td>2</td><td><b>Lakshmi Pai</b></td><td>Dr. Manish Rai</td><td><span class="badge badge-amber">T-002</span></td><td>22 mins</td><td><button class="btn btn-outline btn-sm">Details</button></td></tr>
+          <tr><td>3</td><td><b>Kavitha Rao</b></td><td>Dr. Nishitha</td><td><span class="badge badge-amber">T-003</span></td><td>31 mins</td><td><button class="btn btn-outline btn-sm">Details</button></td></tr>
+          <tr><td>4</td><td><b>Suresh D'Sa</b></td><td>Dr. Anjan</td><td><span class="badge badge-red">T-004</span></td><td>45 mins</td><td><button class="btn btn-outline btn-sm">Details</button></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* HR DASHBOARD */
+  hr_dashboard: `
+    <div class="page-header"><h2>HR Dashboard 👥</h2><p>Staff management — April 2026</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">68</div><div class="stat-lbl">Total Staff</div><div class="stat-change">8 doctors · 60 support</div></div>
+      <div class="stat"><div class="stat-val">64</div><div class="stat-lbl">Present Today</div><div class="stat-change down">4 on leave</div></div>
+      <div class="stat"><div class="stat-val">₹18.4L</div><div class="stat-lbl">Monthly Payroll</div><div class="stat-change">April 2026</div></div>
+      <div class="stat"><div class="stat-val">2</div><div class="stat-lbl">Leave Requests</div><div class="stat-change down">Pending approval</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Doctor Payouts — April 2026</h3><button class="btn btn-green btn-sm" onclick="loadPage('payouts')">Process All</button></div>
+      <table class="tbl">
+        <thead><tr><th>Doctor</th><th>Dept</th><th>Patients</th><th>Revenue Share</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Dr. Raghavendra BS</b></td><td>Neurology</td><td>142</td><td><b>₹1,24,000</b></td><td><span class="badge badge-amber">Pending</span></td></tr>
+          <tr><td><b>Dr. Manish Rai</b></td><td>Cardiology</td><td>98</td><td><b>₹86,000</b></td><td><span class="badge badge-amber">Pending</span></td></tr>
+          <tr><td><b>Dr. Nishitha</b></td><td>Internal Medicine</td><td>76</td><td><b>₹54,000</b></td><td><span class="badge badge-green">Paid</span></td></tr>
+          <tr><td><b>Dr. Rakshith</b></td><td>Surgery</td><td>52</td><td><b>₹96,000</b></td><td><span class="badge badge-amber">Pending</span></td></tr>
+          <tr><td><b>Dr. Shruthi</b></td><td>Neurology</td><td>88</td><td><b>₹72,000</b></td><td><span class="badge badge-green">Paid</span></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* PHARMACY DASHBOARD */
+  pharmacy_dashboard: `
+    <div class="page-header"><h2>Pharmacy Dashboard 💊</h2><p>Stock & dispensing — April 27, 2026</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">7</div><div class="stat-lbl">Prescriptions Pending</div><div class="stat-change down">Oldest: 28 mins</div></div>
+      <div class="stat"><div class="stat-val">1,842</div><div class="stat-lbl">Items In Stock</div><div class="stat-change">Across 342 medicines</div></div>
+      <div class="stat"><div class="stat-val">3</div><div class="stat-lbl">Low Stock Alerts</div><div class="stat-change down">Reorder needed</div></div>
+      <div class="stat"><div class="stat-val">₹84,200</div><div class="stat-lbl">Sales Today</div><div class="stat-change up">↑ 14%</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Prescription Queue</h3><span class="badge badge-red">7 pending</span></div>
+      <table class="tbl">
+        <thead><tr><th>Patient</th><th>Doctor</th><th>Medicines</th><th>Time</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td><b>Ramesh Shetty</b></td><td>Dr. Raghavendra</td><td>Aspirin 75mg, Atorvastatin 40mg</td><td>10:42 AM</td><td><button class="btn btn-green btn-sm">Dispense</button></td></tr>
+          <tr><td><b>Kavitha Rao</b></td><td>Dr. Nishitha</td><td>Metformin 500mg, Glimepiride 1mg</td><td>10:38 AM</td><td><button class="btn btn-green btn-sm">Dispense</button></td></tr>
+          <tr><td><b>Suresh D'Sa</b></td><td>Dr. Anjan</td><td>Amoxicillin 500mg</td><td>10:22 AM</td><td><button class="btn btn-outline btn-sm">Review</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Low Stock Alerts</h3><button class="btn btn-outline btn-sm" onclick="loadPage('reorder')">Reorder All</button></div>
+      <table class="tbl">
+        <thead><tr><th>Medicine</th><th>Current Stock</th><th>Min Required</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Clopidogrel 75mg</b></td><td>12 strips</td><td>50 strips</td><td><span class="badge badge-red">Critical</span></td></tr>
+          <tr><td><b>Levetiracetam 500mg</b></td><td>28 tabs</td><td>100 tabs</td><td><span class="badge badge-red">Critical</span></td></tr>
+          <tr><td><b>IV Normal Saline 500ml</b></td><td>18 bags</td><td>40 bags</td><td><span class="badge badge-amber">Low</span></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* FINANCE DASHBOARD */
+  finance_dashboard: `
+    <div class="page-header"><h2>Finance Dashboard 💰</h2><p>Revenue & billing — April 2026</p></div>
+    <div class="stats">
+      <div class="stat"><div class="stat-val">₹2.4L</div><div class="stat-lbl">Today's Revenue</div><div class="stat-change up">↑ 18% vs last week</div></div>
+      <div class="stat"><div class="stat-val">₹48.2L</div><div class="stat-lbl">April Revenue</div><div class="stat-change up">↑ 22% vs March</div></div>
+      <div class="stat"><div class="stat-val">₹3.8L</div><div class="stat-lbl">Pending Bills</div><div class="stat-change down">14 invoices</div></div>
+      <div class="stat"><div class="stat-val">₹1.2L</div><div class="stat-lbl">Insurance Claims</div><div class="stat-change">6 pending</div></div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head"><h3>Recent Transactions</h3><button class="btn btn-outline btn-sm" onclick="loadPage('billing')">Full Report</button></div>
+      <table class="tbl">
+        <thead><tr><th>Patient</th><th>Service</th><th>Amount</th><th>Payment</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td><b>Ramesh Shetty</b></td><td>Neurology OPD + MRI</td><td><b>₹8,500</b></td><td>UPI</td><td><span class="badge badge-green">Paid</span></td></tr>
+          <tr><td><b>Lakshmi Pai</b></td><td>Cardiology + ECG</td><td><b>₹4,200</b></td><td>Card</td><td><span class="badge badge-green">Paid</span></td></tr>
+          <tr><td><b>Ahmed Khan</b></td><td>Admission Day 3</td><td><b>₹18,000</b></td><td>Insurance</td><td><span class="badge badge-amber">Pending</span></td></tr>
+          <tr><td><b>Kavitha Rao</b></td><td>Internal Medicine</td><td><b>₹2,800</b></td><td>Cash</td><td><span class="badge badge-green">Paid</span></td></tr>
+        </tbody>
+      </table>
+    </div>`,
+
+  /* NEW PATIENT FORM */
+  reception_newpatient: `
+    <div class="page-header"><h2>Register New Patient ➕</h2><p>Create a new patient record</p></div>
+    <div class="form-card">
+      <h3>Personal Details</h3>
+      <div class="form-row">
+        <div class="fg"><label>FULL NAME</label><input type="text" placeholder="Patient full name"></div>
+        <div class="fg"><label>DATE OF BIRTH</label><input type="date"></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>GENDER</label><select><option>Male</option><option>Female</option><option>Other</option></select></div>
+        <div class="fg"><label>BLOOD GROUP</label><select><option>A+</option><option>A-</option><option>B+</option><option>B-</option><option>O+</option><option>O-</option><option>AB+</option><option>AB-</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>MOBILE (WHATSAPP)</label><input type="tel" placeholder="+91 98765 43210"></div>
+        <div class="fg"><label>EMAIL</label><input type="email" placeholder="patient@email.com"></div>
+      </div>
+      <div class="fg"><label>ADDRESS</label><textarea placeholder="Full address"></textarea></div>
+    </div>
+    <div class="form-card">
+      <h3>Appointment Details</h3>
+      <div class="form-row">
+        <div class="fg"><label>DEPARTMENT</label><select><option>Neurology</option><option>Cardiology</option><option>Internal Medicine</option><option>Surgery</option><option>ENT</option></select></div>
+        <div class="fg"><label>DOCTOR</label><select><option>Dr. Raghavendra BS</option><option>Dr. Manish Rai</option><option>Dr. Nishitha</option><option>Dr. Rakshith</option><option>Dr. Anjan</option></select></div>
+      </div>
+      <div class="form-row">
+        <div class="fg"><label>VISIT TYPE</label><select><option>OPD</option><option>Emergency</option><option>Admission</option></select></div>
+        <div class="fg"><label>APPOINTMENT DATE</label><input type="date"></div>
+      </div>
+      <div class="fg"><label>CHIEF COMPLAINT</label><textarea placeholder="Reason for visit"></textarea></div>
+    </div>
+    <div style="display:flex;gap:.8rem;">
+      <button class="btn btn-green" onclick="alert('Patient registered! MRN-001043 generated. WhatsApp confirmation sent.')">Register Patient</button>
+      <button class="btn btn-outline" onclick="loadPage('dashboard')">Cancel</button>
+    </div>`,
+
+  /* CLINICAL NOTES */
+  doctor_notes: `
+    <div class="page-header"><h2>Clinical Notes 📝</h2><p>Ramesh Shetty — MRN-001042 — Neurology</p></div>
+    <div class="form-card">
+      <h3>Patient Summary</h3>
+      <div class="form-row">
+        <div><div class="fg"><label>CHIEF COMPLAINT</label><input value="Stroke follow-up — 3 months post event" readonly></div></div>
+        <div><div class="fg"><label>LAST VISIT</label><input value="January 27, 2026" readonly></div></div>
+      </div>
+    </div>
+    <div class="form-card">
+      <h3>Today's Consultation (AI-assisted via Sully.ai)</h3>
+      <div class="fg"><label>SUBJECTIVE — Patient Reports</label><textarea placeholder="Patient's complaints in their own words...">Patient reports improvement in right-sided weakness. No new headaches. Sleep improving. Occasional dizziness on standing.</textarea></div>
+      <div class="fg"><label>OBJECTIVE — Examination Findings</label><textarea placeholder="Clinical examination findings...">BP 128/82. HR 72 regular. Neurological exam: Power 4/5 right upper limb. MMSE 27/30. No facial droop. Gait stable.</textarea></div>
+      <div class="fg"><label>ASSESSMENT</label><textarea>Post-ischemic stroke — good recovery trajectory. Mild residual right upper limb weakness improving.</textarea></div>
+      <div class="fg"><label>PLAN</label><textarea>1. Continue Aspirin 75mg + Atorvastatin 40mg\n2. Physiotherapy 3x/week\n3. Review MRI brain in 3 months\n4. Follow-up in 6 weeks</textarea></div>
+    </div>
+    <div style="display:flex;gap:.8rem;">
+      <button class="btn btn-green" onclick="alert('Notes saved. Prescription sent to pharmacy. Patient notified on WhatsApp.')">Save & Send to Pharmacy</button>
+      <button class="btn btn-outline">Save Draft</button>
+    </div>`,
+
+  /* GENERIC PLACEHOLDER */
+  _placeholder: (title, icon) => `
+    <div class="page-header"><h2>${icon} ${title}</h2><p>This module is part of the full RVR HMS build.</p></div>
+    <div class="form-card">
+      <h3>Coming in Full Build</h3>
+      <p style="font-size:.82rem;color:var(--gray);line-height:1.7;">This section is available in the complete HMS. The prototype demonstrates the login system, role-based dashboards, patient registration, clinical notes, and the core workflow. Every module shown in the sidebar will be fully functional in the production build.</p>
+      <br><button class="btn btn-green" onclick="loadPage('dashboard')">← Back to Dashboard</button>
+    </div>`
+};
+
+/* ══ LOGIC ═══════════════════════════════════════════════════════ */
+function selectRole(role) {
+  currentRole = role;
+  document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('role-'+role).classList.add('active');
+  const emails = {admin:'vijay@rvrhealthcare.in',doctor:'dr.raghavendra@rvrhealthcare.in',reception:'reception@rvrhealthcare.in',hr:'hr@rvrhealthcare.in',pharmacy:'pharmacy@rvrhealthcare.in',finance:'finance@rvrhealthcare.in'};
+  document.getElementById('login-user').value = emails[role];
+}
+
+function doLogin() {
+  document.getElementById('login-page').style.display = 'none';
+  const app = document.getElementById('app');
+  app.classList.add('visible');
+  const role = ROLES[currentRole];
+  document.getElementById('topbar-role').textContent = role.label;
+  document.getElementById('topbar-user').textContent = role.user;
+  buildSidebar();
+  loadPage('dashboard');
+}
+
+function doLogout() {
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-page').style.display = 'flex';
+}
+
+function buildSidebar() {
+  const role = ROLES[currentRole];
+  let html = '';
+  role.nav.forEach(section => {
+    html += `<div class="sidebar-section"><div class="sidebar-label">${section.section}</div>`;
+    section.items.forEach(item => {
+      html += `<div class="nav-item" id="nav-${item.id}" onclick="loadPage('${item.id}')">
+        <span class="ni">${item.icon}</span>
+        <span>${item.name}</span>
+        ${item.badge ? `<span class="nav-badge">${item.badge}</span>` : ''}
+      </div>`;
+    });
+    html += `</div>`;
+  });
+  document.getElementById('sidebar').innerHTML = html;
+}
+
+function loadPage(pageId) {
+  // Update nav active state
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navEl = document.getElementById('nav-'+pageId);
+  if(navEl) navEl.classList.add('active');
+
+  // Get page content
+  const key = currentRole + '_' + pageId;
+  let content = PAGES[key];
+  if(!content) {
+    // Try generic key
+    if(PAGES[pageId]) {
+      content = PAGES[pageId];
+    } else {
+      const titles = {
+        patients:'All Patients',analytics:'Analytics',departments:'Departments',
+        billing:'Billing',pharmacy:'Pharmacy',hr:'HR & Staff',settings:'Settings',
+        audit:'Audit Log',mypatients:'My Patients',schedule:'My Schedule',
+        prescriptions:'Prescriptions',laborders:'Lab Orders',earnings:'My Earnings',
+        profile:'My Profile',appointments:'Appointments',search:'Search Patient',
+        walkin:'Walk-in Entry',doctors:'Doctor Schedule',rooms:'Room Status',
+        staff:'All Staff',attendance:'Attendance',payroll:'Payroll',payouts:'Doctor Payouts',
+        leaves:'Leave Requests',onboarding:'Onboarding',queue:'Prescription Queue',
+        dispense:'Dispense Medicine',stock:'Stock Management',reorder:'Reorder Alerts',
+        suppliers:'Suppliers',insurance:'Insurance Claims',revenue:'Revenue Reports',
+        expenses:'Expenses',reports:'Reports'
+      };
+      const icons = {
+        patients:'🧑‍⚕️',analytics:'📈',departments:'🏥',billing:'🧾',
+        pharmacy:'💊',hr:'👥',settings:'⚙️',audit:'🔍',mypatients:'🧑‍⚕️',
+        schedule:'📅',prescriptions:'💊',laborders:'🔬',earnings:'💰',
+        profile:'👤',appointments:'📅',search:'🔍',walkin:'🚶',
+        doctors:'🩺',rooms:'🏨',staff:'👥',attendance:'🕐',payroll:'💰',
+        payouts:'💳',leaves:'🌴',onboarding:'📋',queue:'⏳',dispense:'💊',
+        stock:'📦',reorder:'🔄',suppliers:'🏭',insurance:'🛡️',revenue:'📈',
+        expenses:'📉',reports:'📋'
+      };
+      content = PAGES._placeholder(titles[pageId]||pageId, icons[pageId]||'📄');
+    }
+  }
+
+  document.getElementById('main-content').innerHTML = `<div class="page active">${content}</div>`;
+  document.getElementById('main-content').scrollTop = 0;
+}
+</script>
+</body>
+</html>
